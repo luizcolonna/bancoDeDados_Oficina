@@ -1,0 +1,37 @@
+-- 1) Recuperações simples com SELECT Statement
+SELECT name, phone FROM client_pf;
+
+
+-- 2) Filtros com WHERE Statement
+-- Listar serviços com preço maior que R$ 200,00
+SELECT description, price 
+FROM service 
+WHERE price > 200.00;
+
+
+-- 3) Expressões para gerar atributos derivados
+SELECT idOrder, orderDate, YEAR(orderDate) AS orderYear, 
+       DATEDIFF(CURDATE(), orderDate) AS daysOpen 
+FROM work_order 
+WHERE status = 'Aberto';
+
+
+-- 4) Ordenações dos dados com ORDER BY
+SELECT name, price 
+FROM part 
+ORDER BY price DESC;
+
+-- 5) Condições de filtros aos grupos – HAVING Statement
+SELECT idClient, COUNT(*) AS totalOrders
+FROM work_order
+GROUP BY idClient
+HAVING COUNT(*) >= 1;
+
+-- 6) Junções entre tabelas para perspectivas mais complexas
+SELECT wo.idOrder, c.name AS clientName, v.plate, wo.status, wo.orderDate
+FROM work_order wo
+JOIN client_pf c ON wo.idClient = c.idClient
+JOIN vehicle v ON wo.idVehicle = v.idVehicle
+ORDER BY wo.orderDate DESC;
+
+
