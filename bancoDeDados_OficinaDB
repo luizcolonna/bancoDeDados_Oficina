@@ -1,0 +1,131 @@
+-- DROP DATABASE OficinaDB;
+
+CREATE DATABASE OficinaDB;
+
+USE OficinaDB;
+
+-- Clientes PF
+CREATE TABLE client_pf (
+    idClient INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    cpf CHAR(11) UNIQUE NOT NULL,
+    phone VARCHAR(20),
+    address VARCHAR(255)
+);
+
+-- Clientes PJ
+CREATE TABLE client_pj (
+    idClient INT AUTO_INCREMENT PRIMARY KEY,
+    companyName VARCHAR(100) NOT NULL,
+    cnpj CHAR(14) UNIQUE NOT NULL,
+    contactPerson VARCHAR(100),
+    phone VARCHAR(20),
+    address VARCHAR(255)
+);
+
+-- Veículos
+CREATE TABLE vehicle (
+    idVehicle INT AUTO_INCREMENT PRIMARY KEY,
+    idClient INT NOT NULL,
+    plate VARCHAR(10) UNIQUE NOT NULL,
+    model VARCHAR(50),
+    year YEAR,
+    FOREIGN KEY (idClient) REFERENCES client_pf(idClient)
+);
+
+-- Funcionários
+CREATE TABLE employee (
+    idEmployee INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    role ENUM('Mecânico', 'Atendente', 'Administrador') NOT NULL,
+    phone VARCHAR(20)
+);
+
+-- Serviços
+CREATE TABLE service (
+    idService INT AUTO_INCREMENT PRIMARY KEY,
+    description VARCHAR(255) NOT NULL,
+    price DECIMAL(10,2) NOT NULL
+);
+
+-- Ordens de Serviço
+CREATE TABLE work_order (
+    idOrder INT AUTO_INCREMENT PRIMARY KEY,
+    idClient INT NOT NULL,
+    idVehicle INT NOT NULL,
+    orderDate DATE NOT NULL,
+    status ENUM('Aberto', 'Em Andamento', 'Concluído', 'Cancelado') DEFAULT 'Aberto',
+    FOREIGN KEY (idClient) REFERENCES client_pf(idClient),
+    FOREIGN KEY (idVehicle) REFERENCES vehicle(idVehicle)
+);
+
+-- Serviços executados na OS (N:N)
+CREATE TABLE work_order_service (
+    idOrder INT,
+    idService INT,
+    quantity INT DEFAULT 1,
+    PRIMARY KEY (idOrder, idService),
+    FOREIGN KEY (idOrder) REFERENCES work_order(idOrder),
+    FOREIGN KEY (idService) REFERENCES service(idService)
+);
+
+-- Funcionários responsáveis na OS (N:N)
+CREATE TABLE work_order_employee (
+    idOrder INT,
+    idEmployee INT,
+    PRIMARY KEY (idOrder, idEmployee),
+    FOREIGN KEY (idOrder) REFERENCES work_order(idOrder),
+    FOREIGN KEY (idEmployee) REFERENCES employee(idEmployee)
+);
+
+-- Peças
+CREATE TABLE part (
+    idPart INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description VARCHAR(255),
+    price DECIMAL(10,2) NOT NULL
+);
+
+-- Peças usadas nos serviços da OS (N:N)
+CREATE TABLE work_order_part (
+    idOrder INT,
+    idPart INT,
+    quantity INT DEFAULT 1,
+    PRIMARY KEY (idOrder, idPart),
+    FOREIGN KEY (idOrder) REFERENCES work_order(idOrder),
+    FOREIGN KEY (idPart) REFERENCES part(idPart)
+);
+
+-- Fornecedores
+CREATE TABLE supplier (
+    idSupplier INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    cnpj CHAR(14) UNIQUE NOT NULL,
+    contact VARCHAR(100)
+);
+
+-- Peças fornecidas por fornecedores (N:N)
+CREATE TABLE part_supplier (
+    idPart INT,
+    idSupplier INT,
+    PRIMARY KEY (idPart, idSupplier),
+    FOREIGN KEY (idPart) REFERENCES part(idPart),
+    FOREIGN KEY (idSupplier) REFERENCES supplier(idSupplier)
+);
+
+-- Estoque de peças
+CREATE TABLE stock (
+    idPart INT PRIMARY KEY,
+    quantity INT DEFAULT 0,
+    FOREIGN KEY (idPart) REFERENCES part(idPart)
+);
+
+-- Pagamentos
+CREATE TABLE payment (
+    idPayment INT AUTO_INCREMENT PRIMARY KEY,
+    idOrder INT,
+    paymentDate DATE NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    method ENUM('Dinheiro', 'Cartão', 'Pix', 'Cheque') NOT NULL,
+    FOREIGN KEY (idOrder) REFERENCES work_order(idOrder)
+);
